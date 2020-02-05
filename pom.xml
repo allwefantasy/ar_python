@@ -23,8 +23,53 @@
         <spark.bigversion>2.4</spark.bigversion>
         <spark.version>2.4.3</spark.version>
         <app_runtime_with_db.version>1.0.0</app_runtime_with_db.version>
+        <user-system.version>1.0.0</user-system.version>
         <scope>provided</scope>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>tech.mlsql.serviceframework.baseweb</groupId>
+            <artifactId>web-platform_${scala.binary.version}</artifactId>
+            <version>${web-platform-version}</version>
+            <scope>${scope}</scope>
+        </dependency>
+        <dependency>
+            <groupId>tech.mlsql</groupId>
+            <artifactId>pyjava-${spark.bigversion}_${scala.binary.version}</artifactId>
+            <version>${pyjava-version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>tech.mlsql</groupId>
+                    <artifactId>common-utils_${scala.binary.version}</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_${scala.binary.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>${scope}</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.binary.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>${scope}</scope>
+        </dependency>
+        <dependency>
+            <groupId>tech.mlsql.serviceframework.baseweb</groupId>
+            <artifactId>app_runtime_with_db-lib_${scala.binary.version}</artifactId>
+            <version>${app_runtime_with_db.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>tech.mlsql.serviceframework.baseweb</groupId>
+            <artifactId>user-system-lib_${scala.binary.version}</artifactId>
+            <version>${user-system.version}</version>
+        </dependency>
+
+    </dependencies>
 
     <profiles>
         <profile>
@@ -87,45 +132,6 @@
 
 
     </profiles>
-
-    <dependencies>
-        <dependency>
-            <groupId>tech.mlsql.serviceframework.baseweb</groupId>
-            <artifactId>web-platform_${scala.binary.version}</artifactId>
-            <version>${web-platform-version}</version>
-            <scope>${scope}</scope>
-        </dependency>
-        <dependency>
-            <groupId>tech.mlsql</groupId>
-            <artifactId>pyjava-${spark.bigversion}_${scala.binary.version}</artifactId>
-            <version>${pyjava-version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>tech.mlsql</groupId>
-                    <artifactId>common-utils_${scala.binary.version}</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_${scala.binary.version}</artifactId>
-            <version>${spark.version}</version>
-            <scope>${scope}</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_${scala.binary.version}</artifactId>
-            <version>${spark.version}</version>
-            <scope>${scope}</scope>
-        </dependency>
-        <dependency>
-            <groupId>tech.mlsql.serviceframework.baseweb</groupId>
-            <artifactId>app_runtime_with_db-lib_${scala.binary.version}</artifactId>
-            <version>${app_runtime_with_db.version}</version>
-        </dependency>
-
-    </dependencies>
 
     <build>
         <plugins>

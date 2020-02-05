@@ -6,14 +6,19 @@ import org.apache.spark.TaskContext
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import tech.mlsql.app_runtime.db.service.BasicDBService
+import tech.mlsql.app_runtime.plugin.user.action.CanAccess
 import tech.mlsql.app_runtime.python.PluginDB.ctx
 import tech.mlsql.app_runtime.python.PluginDB.ctx._
 import tech.mlsql.app_runtime.python.quill_model.PythonScript
 import tech.mlsql.arrow.python.iapp.{AppContextImpl, JavaContext}
 import tech.mlsql.arrow.python.runner.{ArrowPythonRunner, ChainedPythonFunctions, PythonConf, PythonFunction}
+import tech.mlsql.common.utils.Md5
 import tech.mlsql.common.utils.lang.sc.ScalaMethodMacros.str
 import tech.mlsql.common.utils.log.Logging
-import tech.mlsql.serviceframework.platform.action.CustomAction
+import tech.mlsql.common.utils.serder.json.JSONTool
+import tech.mlsql.serviceframework.platform.action.{ActionContext, CustomAction}
+import tech.mlsql.serviceframework.platform.{PluginItem, PluginType}
 
 import scala.collection.JavaConverters._
 
@@ -22,6 +27,28 @@ import scala.collection.JavaConverters._
  */
 class PythonAction extends CustomAction with Logging {
   override def run(params: Map[String, String]): String = {
+    val codeName = params(PythonAction.Params.CODE_NAME)
+    val code = if (BasicDBService.isDBSupport) {
+      ctx.run(ctx.query[PythonScript].filter(_.name == lift(codeName))).head.code
+    } else RegisterPythonAction.CODE_CACHE.get(codeName)
+
+
+    val canAccess = if (BasicDBService.isDBSupport) {
+      ArPythonService.checkLoginAndResourceAccess(
+        ArPythonService.Config.customResourceKey(codeName),
+        params)
+    } else {
+      CanAccess(BasicDBService.adminToken == params.getOrElse("admin_token", ""), "")
+    }
+
+    if (!canAccess.access) {
+      render(
+        ActionContext.context().httpContext.response,
+        400,
+        JSONTool.toJsonStr(Map("msg" -> canAccess.msg)))
+    }
+
+
     val env = params.getOrElse("env", "source activate streamingpro-spark-2.4.x") + " && export ARROW_PRE_0_15_IPC_FORMAT=1 "
 
     val envs = new util.HashMap[String, String]()
@@ -29,14 +56,7 @@ class PythonAction extends CustomAction with Logging {
 
     val pythonVersion = params.getOrElse("pythonVersion", "3.6")
 
-    val code = params.get("codeName") match {
-      case Some(codeName) =>
-        ctx.run(ctx.query[PythonScript].filter(_.name == lift(codeName))).head.code
-      case None => params.getOrElse("code",
-        """
-          |
-          |""".stripMargin)
-    }
+
     val inputSchema = StructType(Seq(StructField("key", StringType), StructField("value", StringType)))
     val enconder = RowEncoder.apply(inputSchema).resolveAndBind()
 
@@ -62,5 +82,18 @@ class PythonAction extends CustomAction with Logging {
     content
   }
 }
+
+object PythonAction {
+
+  object Params {
+    val CODE_NAME = "codeName"
+  }
+
+  def action = "pyAction"
+
+  def plugin = PluginItem(action, classOf[PythonAction].getName, PluginType.action, None)
+}
+
+
 
 

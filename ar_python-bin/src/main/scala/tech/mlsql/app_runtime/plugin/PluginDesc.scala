@@ -1,13 +1,15 @@
 package tech.mlsql.app_runtime.plugin
 
-import tech.mlsql.app_runtime.python.action.{PythonAction, RegisterPythonAction}
+import tech.mlsql.app_runtime.python.action.{PyAuthAction, PythonAction, RegisterPythonAction}
 import tech.mlsql.serviceframework.platform._
 
 class PluginDesc extends Plugin {
   override def entries: List[PluginItem] = {
     List(
-      PluginItem("pyAction", classOf[PythonAction].getName, PluginType.action, None),
-      PluginItem("registerPyAction", classOf[RegisterPythonAction].getName, PluginType.action, None))
+      PythonAction.plugin,
+      RegisterPythonAction.plugin,
+      PyAuthAction.plugin
+    )
   }
 
   def registerForTest() = {
