@@ -1,6 +1,6 @@
 package tech.mlsql.app_runtime.plugin
 
-import tech.mlsql.app_runtime.python.action.{PyAuthAction, PythonAction, RegisterPythonAction}
+import tech.mlsql.app_runtime.python.action.{PyAuthAction, PythonAction, PythonScriptAction, RegisterPythonAction}
 import tech.mlsql.serviceframework.platform._
 
 class PluginDesc extends Plugin {
@@ -8,7 +8,8 @@ class PluginDesc extends Plugin {
     List(
       PythonAction.plugin,
       RegisterPythonAction.plugin,
-      PyAuthAction.plugin
+      PyAuthAction.plugin,
+      PythonScriptAction.plugin
     )
   }
 

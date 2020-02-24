@@ -1,16 +1,18 @@
 package tech.mlsql.app_runtime.python.action
 
+import tech.mlsql.app_runtime.commons.{Editor, FormParams, Input, KV}
 import tech.mlsql.app_runtime.db.service.BasicDBService
-import tech.mlsql.app_runtime.plugin.user.action.CanAccess
+import tech.mlsql.app_runtime.plugin.user.action.{BaseAction, CanAccess}
 import tech.mlsql.app_runtime.python.PluginDB.ctx
 import tech.mlsql.app_runtime.python.PluginDB.ctx._
 import tech.mlsql.app_runtime.python.quill_model
+import tech.mlsql.app_runtime.python.service.ArPythonService
 import tech.mlsql.common.utils.serder.json.JSONTool
 import tech.mlsql.serviceframework.platform.action.{ActionContext, CustomAction}
 import tech.mlsql.serviceframework.platform.{PluginItem, PluginType}
 
-class RegisterPythonAction extends CustomAction {
-  override def run(params: Map[String, String]): String = {
+class RegisterPythonAction extends BaseAction {
+  override def _run(params: Map[String, String]): String = {
     val canAccess = if (BasicDBService.isDBSupport) {
       ArPythonService.checkLoginAndResourceAccess(
         ArPythonService.Config.actionResourceKey(RegisterPythonAction.action),
@@ -26,8 +28,8 @@ class RegisterPythonAction extends CustomAction {
     }
 
 
-    val name = params("codeName")
-    val code = params("code")
+    val name = params(RegisterPythonAction.Params.CODE_NAME.name)
+    val code = params(RegisterPythonAction.Params.CODE.name)
 
     if (BasicDBService.isDBSupport) {
       def fetch = {
@@ -47,9 +49,28 @@ class RegisterPythonAction extends CustomAction {
     }
 
   }
+
+
+  override def _help(): String = {
+    JSONTool.toJsonStr(FormParams.toForm(RegisterPythonAction.Params).toList.reverse)
+  }
 }
 
 object RegisterPythonAction {
+
+  object Params {
+
+    val CODE_NAME = Input("codeName", "")
+
+    val CODE = Editor("code", values = List(), valueProvider = Option(() => {
+      List(
+        KV(Option("python"), Option(""))
+      )
+    }))
+
+    val ADMIN_TOKEN = Input("admin_token", "")
+  }
+
   val CODE_CACHE = new java.util.concurrent.ConcurrentHashMap[String, String]()
 
   def action = "registerPyAction"

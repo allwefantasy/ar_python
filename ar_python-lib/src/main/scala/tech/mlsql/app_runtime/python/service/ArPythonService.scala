@@ -1,5 +1,6 @@
-package tech.mlsql.app_runtime.python.action
+package tech.mlsql.app_runtime.python.service
 
+import tech.mlsql.app_runtime.db.service.BasicDBService
 import tech.mlsql.app_runtime.plugin.user.action._
 import tech.mlsql.app_runtime.python.PluginDB
 import tech.mlsql.common.utils.serder.json.JSONTool
@@ -33,11 +34,22 @@ object ArPythonService extends RenderFunctions {
   }
 
   def isLogin(userName: String, token: String) = {
-    val isLoginStr = UserSystemActionProxy.proxy.run(IsLogin.action, Map(
+    val isLoginStr = UserSystemActionProxy.proxy.run(IsLoginAction.action, Map(
       UserService.Config.USER_NAME -> userName,
       UserService.Config.LOGIN_TOKEN -> token
     ))
     JSONTool.parseJson[List[tech.mlsql.app_runtime.plugin.user.Session]](isLoginStr)
+  }
+
+  def canAccess(resourceKey: String, params: Map[String, String]) = {
+    val canAccess = if (BasicDBService.isDBSupport) {
+      ArPythonService.checkLoginAndResourceAccess(
+        resourceKey,
+        params)
+    } else {
+      CanAccess(BasicDBService.adminToken == params.getOrElse("admin_token", ""), "")
+    }
+    canAccess
   }
 
 }
