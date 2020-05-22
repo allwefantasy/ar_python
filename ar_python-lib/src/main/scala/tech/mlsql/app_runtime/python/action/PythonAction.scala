@@ -32,7 +32,7 @@ class PythonAction extends BaseAction with Logging {
     val code = if (BasicDBService.isDBSupport) {
       ctx.run(ctx.query[PythonScript].filter(_.name == lift(codeName))).head.code
     } else RegisterPythonAction.CODE_CACHE.get(codeName)
-
+    
     val canAccess = ArPythonService.canAccess(ArPythonService.Config.customResourceKey(codeName), params)
     if (!canAccess.access) {
       render(400, JSONTool.toJsonStr(Map("msg" -> canAccess.msg)))
